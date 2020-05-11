@@ -6,12 +6,23 @@ use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Controller;
 use App\Product;
 use App\Seller;
+use App\Transformers\ProductTransformer;
+use App\Transformers\SellerTransformer;
 use App\User;
+use Illuminate\Contracts\Cache\Store;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class SellerProductController extends ApiController
 {
+    public function __construct()
+    {
+        //parent::__construct();
+
+        $this->middleware('transform.input:' . ProductTransformer::class)->only(['store', 'update']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -56,7 +67,7 @@ class SellerProductController extends ApiController
         $data = $request->all();
 
         $data['status'] = Product::UNAVALIABLE_PRODUCT;
-        $data['image'] = '1.png';
+        $data['image'] =  $request->image->store('');
         $data['seller_id'] = $seller->id;
 
         $product = Product::create($data);
@@ -121,6 +132,11 @@ class SellerProductController extends ApiController
                 return $this->errorsRespoense('An active product must have at least one category', 409);
             }
         }
+        if ($request->hasFile('image')) {
+            Storage::delete($product->image);
+
+            $product->image = $request->image->store('');
+        }
 
         if ($product->isClean()) {
             return $this->errorResponse('You need to specify deiiferent value to update', 422);
@@ -141,6 +157,7 @@ class SellerProductController extends ApiController
         //
         $this->checkSeller($seller, $product);
 
+        Storage::delete($product->image);
         $product->delete();
 
         return $this->showOne($product);

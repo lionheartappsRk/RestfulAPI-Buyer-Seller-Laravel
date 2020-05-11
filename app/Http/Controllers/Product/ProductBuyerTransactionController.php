@@ -8,12 +8,21 @@ use App\Http\Controllers\Controller;
 use App\Product;
 use App\Seller;
 use App\Transaction;
+use App\Transformers\TransactionTransformer;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ProductBuyerTransactionController extends ApiController
 {
+
+    public function __construct()
+    {
+        //parent::__construct();
+
+        $this->middleware('transform.input:' . TransactionTransformer::class)->only(['store']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -54,13 +63,13 @@ class ProductBuyerTransactionController extends ApiController
             return $this->errorResponse('The buyer must be different from the seller', 409);
         }
 
-        /*  if (!$buyer->isVerified()) {
+        if (!$buyer->isVerified()) {
             return $this->errorResponse('The buyer must be verified user', 409);
-        } */
+        }
 
-        /* if (!$product->seller->isVerified()) {
+        if (!$product->seller->isVerified()) {
             return $this->errorResponse('The seller must be verified user', 409);
-        } */
+        }
 
         if (!$product->isAvaliable()) {
             return $this->errorResponse('The product is not avaliable', 409);

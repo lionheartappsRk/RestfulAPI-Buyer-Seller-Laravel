@@ -3,11 +3,20 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\ApiController;
+use App\Mail\UserVerification;
+use App\Transformers\UserTransformer;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends ApiController
 {
+    public function __construct()
+    {
+        //parent::__construct();
+
+        $this->middleware('transform.input:' . UserTransformer::class)->only(['store', 'update']);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -18,7 +27,8 @@ class UserController extends ApiController
         //
         $users = User::all();
 
-        return response()->json(['data' => $users], 200);
+        // return response()->json(['data' => $users], 200);
+        return $this->showAll($users);
     }
 
     /**
@@ -111,7 +121,7 @@ class UserController extends ApiController
         }
 
         if ($request->has('email') &&  $user->email != $request->email) {
-            $user->verified = User::UNVERIFIED_USER();
+            $user->verified = User::UNVERIFIED_USER;
             $user->verification_token = User::generateVerificationCode();
             $user->email = $request->email;
         }
@@ -153,5 +163,30 @@ class UserController extends ApiController
         $user->delete();
         // return response()->json(['data' => $user], 200);
         return $this->showOne($user);
+    }
+
+
+    public function verify($token)
+    {
+        $user = User::where('verification_token', $token)->firstOrFail();
+        $user->verified = User::VERIFIED_USER;
+        $user->verification_token = null;
+
+        $user->save();
+
+        return $this->showMessage('The account has been verifies successfully');
+    }
+
+    public function resend(User $user)
+    {
+        if ($user->isVerified()) {
+            return $this->errorResponse('This user is already verified', 409);
+        }
+
+        retry(5, function () use ($user) {
+            Mail::to($user)->send(new UserVerification($user));
+        }, 100);
+
+        return $this->showMessage('The verification email has been resend');
     }
 }
