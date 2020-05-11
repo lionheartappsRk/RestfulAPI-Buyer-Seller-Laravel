@@ -86,7 +86,7 @@ class ProductTransformer extends TransformerAbstract
             'identifier' => 'id',
             'title' => 'name',
             'details' => 'description',
-            'stock' => 'qty',
+            'qty' => 'qty',
             'status' => 'status',
             'pic' => 'image',
             'seller' => 'seller_id',
@@ -107,7 +107,7 @@ class ProductTransformer extends TransformerAbstract
             'name' => 'title',
 
             'description'  => 'details',
-            'qty' => 'stock',
+            'qty' => 'qty',
             'status' => 'status',
             'image'  => 'pic',
             'seller_id' =>  'seller',

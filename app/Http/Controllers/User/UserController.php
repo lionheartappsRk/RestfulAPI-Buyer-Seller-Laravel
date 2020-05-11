@@ -14,8 +14,14 @@ class UserController extends ApiController
     public function __construct()
     {
         //parent::__construct();
-
+        $this->middleware('client.credentials')->only(['store', 'resend']);
+        $this->middleware('auth:api')->except(['store', 'verify', 'resend']);
         $this->middleware('transform.input:' . UserTransformer::class)->only(['store', 'update']);
+
+        $this->middleware('scope:manage-account')->only(['show', 'update']);
+        $this->middleware('can:view,user')->only('show');
+        $this->middleware('can:update,user')->only('update');
+        $this->middleware('can:delete,user')->only('destroy');
     }
     /**
      * Display a listing of the resource.
@@ -162,6 +168,13 @@ class UserController extends ApiController
 
         $user->delete();
         // return response()->json(['data' => $user], 200);
+        return $this->showOne($user);
+    }
+
+    public function me(Request $request)
+    {
+        $user = $request->user();
+
         return $this->showOne($user);
     }
 

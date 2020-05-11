@@ -169,6 +169,7 @@ return [
          */
         Laravel\Passport\PassportServiceProvider::class,
         Spatie\Fractal\FractalServiceProvider::class,
+        \Fruitcake\Cors\CorsServiceProvider::class,
 
 
         /*

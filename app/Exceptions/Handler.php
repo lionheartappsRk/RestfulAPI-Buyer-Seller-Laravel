@@ -3,6 +3,8 @@
 namespace App\Exceptions;
 
 use App\Traits\ApiResponser;
+use Asm89\Stack\CorsService;
+use Exception;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -14,6 +16,7 @@ use Illuminate\Support\Arr;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -63,6 +66,19 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
+        $resposne = $this->handleException($request, $exception);
+
+        app(CorsService::class)->addActualRequestHeaders($resposne, $request);
+        
+        return $resposne;
+    }
+
+    /**
+     *  Handling All Exceptions For API
+     */
+
+    public function handleException($request, Exception $exception)
+    {
 
         if ($exception instanceof ValidationException) {
 
@@ -84,6 +100,11 @@ class Handler extends ExceptionHandler
 
             return $this->errorResponse($exception->getMessage(), 403);
         }
+
+        /* if ($exception instanceof RouteNotFoundException) {
+
+            return $this->errorResponse('The specified route does not found', 404);
+        } */
 
 
         if ($exception instanceof NotFoundHttpException) {
@@ -120,6 +141,8 @@ class Handler extends ExceptionHandler
 
         return $this->errorResponse('Unexpected exception. Try later', 500);
     }
+
+
 
     protected function unauthenticated($request, AuthenticationException $exception)
     {

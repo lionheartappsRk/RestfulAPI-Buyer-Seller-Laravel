@@ -21,6 +21,12 @@ class SellerProductController extends ApiController
         //parent::__construct();
 
         $this->middleware('transform.input:' . ProductTransformer::class)->only(['store', 'update']);
+        $this->middleware('scope:manage-products')->except('index');
+
+        $this->middleware('can:view,seller')->only(['index']);
+        $this->middleware('can:sale,seller')->only(['store']);
+        $this->middleware('can:update,seller')->only(['update']);
+        $this->middleware('can:delete,seller')->only(['destroy']);
     }
 
     /**
@@ -31,6 +37,7 @@ class SellerProductController extends ApiController
     public function index(Seller $seller)
     {
         //
+
         $products = $seller->products;
 
         return response()->json(['data' => $products], 200);

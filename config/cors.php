@@ -17,9 +17,9 @@ return [
 
     'paths' => ['api/*'],
 
-    'allowed_methods' => ['*'],
+    'allowed_methods' => ['*'], 
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => ['*'], // www.lionheartapps.com or .com
 
     'allowed_origins_patterns' => [],
 
